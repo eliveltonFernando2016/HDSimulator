@@ -16,7 +16,6 @@ Disco* disco_cria(char* nome, unsigned long tamanho){
     
     NoArquivo* arqAux = (NoArquivo*)calloc(1, sizeof(NoArquivo));
     disco->arquivos = (NoArquivo*)calloc(1, sizeof(NoArquivo));
-    arqAux->nome = NULL;
     arqAux->tam = 0;
     arqAux->setores = NULL;
     arqAux->ant = disco->arquivos;
@@ -37,9 +36,31 @@ Disco* disco_cria(char* nome, unsigned long tamanho){
 }
 
 TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){ //nome arquivo deve conter o caminho absoluto ou relativo do arquivo
-    
+    int tamArquivo = FileReader(arquivo);
+    if(tamArquivo==0){
+        return ARQUIVO_INEXISTENTE;
+    }
+    else{
+        NoArquivo* arq = (NoArquivo*)calloc(tamArquivo, sizeof(NoArquivo));
+        strcpy(arq->nome, arquivo);
+    }
 }
 
 TipoRetorno RemocaoDoDisco(Disco* d, char* nome); //somente o nome do arquivo sem o caminho
 
 TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico);
+
+int FileReader(char* nome){
+    FILE *arq;
+	    
+    arq = fopen(nome, "rb");
+    if(!arq){
+        perror("Erro na abertura do arquivo");
+        return 0;
+    }
+
+    fseek(arq, 0, SEEK_END);
+    int tamanho = ftell(arq);
+    fclose(arq);
+    return tamanho;
+}

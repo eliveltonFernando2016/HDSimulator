@@ -15,6 +15,6 @@
 
 int main() {
     Disco* disco = disco_cria("Elivelton", 10);
-    
+    GravacaoEmDisco(disco, "arquivo_teste.jpg");
     return (EXIT_SUCCESS);
 }

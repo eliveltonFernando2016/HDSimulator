@@ -35,7 +35,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/FileReader.o \
 	${OBJECTDIR}/Simulator.o \
 	${OBJECTDIR}/main.o
 
@@ -63,11 +62,6 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/hdsimulator: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/hdsimulator ${OBJECTFILES} ${LDLIBSOPTIONS}
-
-${OBJECTDIR}/FileReader.o: FileReader.c
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/FileReader.o FileReader.c
 
 ${OBJECTDIR}/Simulator.o: Simulator.c
 	${MKDIR} -p ${OBJECTDIR}

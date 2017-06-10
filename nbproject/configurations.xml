@@ -4,13 +4,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Arquivos de Cabeçalho"
                    projectFiles="true">
-      <itemPath>FileReader.h</itemPath>
       <itemPath>Simulator.h</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Arquivos de Código-Fonte"
                    projectFiles="true">
-      <itemPath>FileReader.c</itemPath>
       <itemPath>Simulator.c</itemPath>
       <itemPath>main.c</itemPath>
     </logicalFolder>
@@ -43,10 +41,6 @@
           <standard>10</standard>
         </cTool>
       </compileType>
-      <item path="FileReader.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="FileReader.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Simulator.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="Simulator.h" ex="false" tool="3" flavor2="0">
@@ -75,10 +69,6 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="FileReader.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="FileReader.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="Simulator.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="Simulator.h" ex="false" tool="3" flavor2="0">
