@@ -64,4 +64,3 @@ TipoRetorno RemocaoDoDisco(Disco* d, char* nome); //somente o nome do arquivo se
 TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico);
 
 #endif /* SIMULATOR_H */
-
