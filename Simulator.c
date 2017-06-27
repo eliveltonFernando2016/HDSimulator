@@ -65,26 +65,75 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
             noArquivo->setores = (NoSetor*)calloc(1, sizeof(NoSetor));
             noArquivo->setores->inicio = 0;
             noArquivo->setores->fim = 0;
-            noArquivo->ant = noArquivo->setores;
-            noArquivo->prox = noArquivo->setores;
-            
+            noArquivo->ant = noArquivo->ant;
+            noArquivo->prox = noArquivo->prox;
+
             noArquivo->ant = d->arquivos->prox->ant;
             d->arquivos->prox->ant = noArquivo;
             noArquivo->prox = d->arquivos->prox;
             d->arquivos->prox = noArquivo;
             /*Fim declaração nó arquivo*/
 
-            while (tamanhoAux>0) {
-                fread(d->disco, 1, 1, arq);
-                d->livres->prox->inicio++;
-                if(d->livres->prox->inicio == d->livres->prox->fim){//Verifica se a partição comporta o arquivo completo
-                    d->livres->prox->prox->ant = d->livres->prox->ant;
-                    d->livres->prox = d->livres->prox->prox;
+            while (tamanhoAux != 0) {
+                if((d->livres->prox->fim - d->livres->prox->inicio) > tamanhoAux){ //Eu adiciono o arquivo completo caso haja espaço
+                    fread(d->disco, tamanhoAux, 1, arq);
+                    NoSetor* noSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
+                    noSetorArquivo->inicio = d->livres->prox->inicio;
+                    noSetorArquivo->fim = noSetorArquivo->inicio+tamanhoAux;
+                    
+                    /*Adicionando um novo setor como ultimo nó*/
+                    NoSetor* novoNoSetor = (NoSetor*)calloc(1, sizeof(NoSetor));
+                    novoNoSetor->inicio = d->livres->prox->inicio;
+                    novoNoSetor->fim = d->livres->prox->inicio+tamanhoAux;
+                    
+                    novoNoSetor->ant = noArquivo->setores->ant;
+                    novoNoSetor->prox = noArquivo->setores;
+                    noArquivo->setores->ant->prox = novoNoSetor;
+                    noArquivo->setores->ant = novoNoSetor;
+
+                    d->espacoLivre -= tamanhoAux;
+                    d->espacoOcupado += tamanhoAux;
+                    
+                    if((d->livres->prox->fim - d->livres->prox->inicio) == tamanhoAux){
+                        d->livres->prox->prox->ant = d->livres->prox->ant;
+                        NoSetor* aux = d->livres->prox;
+                        d->livres->prox = d->livres->prox->prox;
+                        free(aux);
+                    }
+                    else{
+                        d->livres->prox->inicio += noSetorArquivo->fim+1;
+                    }
+                    
+                    tamanhoAux=0;
                 }
-                tamanhoAux--;
-                d->espacoLivre--;
-                d->espacoOcupado++;
+                else{
+                    fread(d->disco, d->livres->prox->fim - d->livres->prox->inicio, 1, arq);
+                    NoSetor* noSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
+                    noSetorArquivo->inicio = d->livres->prox->inicio;
+                    noSetorArquivo->fim = noSetorArquivo->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
+                    
+                    /*Adicionando um novo setor como ultimo nó*/
+                    NoSetor* novoNoSetor = (NoSetor*)calloc(1, sizeof(NoSetor));
+                    novoNoSetor->ant = noArquivo->setores->ant;
+                    novoNoSetor->prox = noArquivo->setores;
+                    noArquivo->setores->ant->prox = novoNoSetor;
+                    noArquivo->setores->ant = novoNoSetor;
+                    
+                    novoNoSetor->inicio = d->livres->prox->inicio;
+                    novoNoSetor->fim = d->livres->prox->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
+                    
+                    d->espacoLivre -= d->livres->prox->fim - d->livres->prox->inicio;
+                    d->espacoOcupado += d->livres->prox->fim - d->livres->prox->inicio;
+
+                    d->livres->prox->prox->ant = d->livres->prox->ant;
+                    NoSetor* aux = d->livres->prox;
+                    d->livres->prox = d->livres->prox->prox;
+                    free(aux);
+                    
+                    tamanhoAux -= d->livres->prox->fim - d->livres->prox->inicio;
+                }
             }
+
         }
         else{
             return ESPACO_INSUFICIENTE;

@@ -41,7 +41,7 @@ typedef struct{
     unsigned long tamDisco;
     unsigned long espacoLivre;
     unsigned long espacoOcupado;
-    unsigned long qtdeArquivos;    
+    int qtdeArquivos;    
 }Disco;
  
 typedef enum{
