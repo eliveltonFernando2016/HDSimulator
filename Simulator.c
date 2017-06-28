@@ -65,8 +65,10 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
             noArquivo->setores = (NoSetor*)calloc(1, sizeof(NoSetor));
             noArquivo->setores->inicio = 0;
             noArquivo->setores->fim = 0;
-            noArquivo->ant = noArquivo->ant;
-            noArquivo->prox = noArquivo->prox;
+            noArquivo->ant = noArquivo;
+            noArquivo->prox = noArquivo;
+            noArquivo->setores->ant = noArquivo->setores;
+            noArquivo->setores->prox = noArquivo->setores;
 
             noArquivo->ant = d->arquivos->prox->ant;
             d->arquivos->prox->ant = noArquivo;
@@ -86,9 +88,9 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
                     novoNoSetor->inicio = d->livres->prox->inicio;
                     novoNoSetor->fim = d->livres->prox->inicio+tamanhoAux;
                     
+                    noArquivo->setores->ant->prox = novoNoSetor;
                     novoNoSetor->ant = noArquivo->setores->ant;
                     novoNoSetor->prox = noArquivo->setores;
-                    noArquivo->setores->ant->prox = novoNoSetor;
                     noArquivo->setores->ant = novoNoSetor;
 
                     d->espacoLivre -= tamanhoAux;
@@ -144,6 +146,49 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
     return SUCESSO;
 }
 
-TipoRetorno RemocaoDoDisco(Disco* d, char* nome); //somente o nome do arquivo sem o caminho
+TipoRetorno RemocaoDoDisco(Disco* d, char* nome){
+    NoArquivo* noArqAux = d->arquivos;
+    unsigned long i;
+    
+    while (noArqAux != d->arquivos->ant){                                                   //Laço para chegar até o nó do arquivo
+        if(strcmp(nome, noArqAux->nome)==0){                                                //Condição que verifica se é o arquivo-nó procurado
+            for(i=noArqAux->setores->prox->inicio; i <= noArqAux->setores->prox->fim; i++){ //Laço para percorrer a posição do disco e apagar
+                free(d->disco[i]);
+            }
+
+            //Atualiza os valores de espaço livre e ocupado
+            d->espacoLivre += ((noArqAux->setores->prox->fim - noArqAux->setores->prox->inicio)+1);
+            d->espacoOcupado -= ((noArqAux->setores->prox->fim - noArqAux->setores->prox->inicio)+1);
+
+            NoSetor* noDeleta = noArqAux->setores->prox;
+            
+            //Reaponta do primeiro setor para o segundo
+            noArqAux->setores->prox->prox->ant = noArqAux->setores->prox->ant;
+            noArqAux->setores->prox = noArqAux->setores->prox->prox;
+
+            /*
+             * Possibilidade:
+             * Ao lado direito do primeiro: atualiza o fim pra menos,
+             * Ao lado esquerdo do primeiro: atualiza o inicio pra mais,
+             * Não fica ao lado de nenhum antigo setor livre. Criando um novo nó de espaço livre,
+             */
+            if(noArqAux->setores->prox->fim+1 == d->livres->prox->inicio){
+                d->livres->prox->inicio = noArqAux->setores->prox->inicio;
+                free(noDeleta);
+            }
+            else if(noArqAux->setores->prox->inicio-1 == d->livres->prox->fim){
+                d->livres->prox->fim = noArqAux->setores->prox->fim;
+                free(noDeleta);
+            }
+            else if(noArqAux->setores->prox->fim+1 < d->livres->prox->inicio){
+                
+            }
+
+            return SUCESSO;
+        }
+        noArqAux = noArqAux->prox;
+    }
+    return ARQUIVO_INEXISTENTE;
+}
 
 TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico);
