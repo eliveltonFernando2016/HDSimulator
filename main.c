@@ -14,19 +14,19 @@
 #include "Simulator.h"
 
 int main() {
-    Disco* disco = disco_cria("Elivelton", 10000000);
-    GravacaoEmDisco(disco, "Input/teste.jpg");
-    GravacaoEmDisco(disco, "Input/disney2017.pdf");
-    GravacaoEmDisco(disco, "Input/Suit&Tie.mp3");
+    Disco* disco = disco_cria("Elivelton", 100000000);
+    GravacaoEmDisco(disco, "/home/elivelton/Downloads/teste.jpg");
+    GravacaoEmDisco(disco, "/home/elivelton/Música/Suit & Tie (Dillon Francis Remix).mp3");
+    GravacaoEmDisco(disco, "Input/CRER.pdf");
     
-    RemocaoDoDisco(disco, "Input/Suit&Tie.mp3");
-    
-    GravacaoEmDisco(disco, "Input/quadricas.pdf");
-    GravacaoEmDisco(disco, "Input/TrabGA.ggb");
-    
-    RemocaoDoDisco(disco, "Input/quadricas.pdf");
-    
-    GravacaoEmDisco(disco, "Input/abada.jpg");
+    RemocaoDoDisco(disco, "/home/elivelton/Música/Suit & Tie (Dillon Francis Remix).mp3");
+
+    //GravacaoEmDisco(disco, "/home/elivelton/Dropbox/disney2017.pdf");
+//    GravacaoEmDisco(disco, "Input/TrabGA.ggb");
+//    
+//    RemocaoDoDisco(disco, "Input/quadricas.pdf");
+//    
+//    GravacaoEmDisco(disco, "Input/abada.jpg");
 
     printf("Quantidade de Arquivos: %d\n", disco->qtdeArquivos);
     printf("Quantidade Livre: %lu\n", disco->espacoLivre);
@@ -34,13 +34,14 @@ int main() {
     
     /*Incio Abertura e validação do arquivo*/
     FILE* recuperado;
-    recuperado = fopen("OutPut/quadricas.pdf", "wb");
+    recuperado = fopen("OutPut/CRER.pdf", "wb");
     if(!recuperado){
         perror("Erro na abertura do arquivo");
     }
     /*Fim Abertura e Validação arquivo*/
 
-    RecuperaArquivo(disco, "Input/quadricas.pdf", recuperado);
+    RecuperaArquivo(disco, "Input/CRER.pdf", recuperado);
+    fclose(recuperado);
 
     return (EXIT_SUCCESS);
 }
