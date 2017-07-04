@@ -26,7 +26,7 @@ typedef struct nosetor{
 }NoSetor;
  
 typedef struct noarquivo{
-    char nome[40];
+    char nome[80];
     unsigned long tam;
     NoSetor* setores;
     struct noarquivo* prox;
@@ -63,6 +63,12 @@ TipoRetorno RemocaoDoDisco(Disco* d, char* nome); //somente o nome do arquivo se
 
 TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico);
 
+void devolve_livre(NoSetor* sentinela, NoSetor* disponivel);
+
+void no_insereAntes(NoSetor* referencia, NoSetor* novo);
+
 char* nomeArquivo(char* nome);
+
+void no_verifica(NoSetor* no);
 
 #endif /* SIMULATOR_H */

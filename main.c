@@ -14,19 +14,34 @@
 #include "Simulator.h"
 
 int main() {
-    Disco* disco = disco_cria("Elivelton", 100000000);
-    GravacaoEmDisco(disco, "/home/elivelton/Downloads/teste.jpg");
-    GravacaoEmDisco(disco, "/home/elivelton/Música/Suit & Tie (Dillon Francis Remix).mp3");
-    GravacaoEmDisco(disco, "Input/CRER.pdf");
+    TipoRetorno retorno;
     
-    RemocaoDoDisco(disco, "/home/elivelton/Música/Suit & Tie (Dillon Francis Remix).mp3");
+    Disco* disco = disco_cria("Elivelton", 100000000);
+    
+    retorno = GravacaoEmDisco(disco, "/home/elivelton/Downloads/teste.jpg");
+    if(retorno!=0){
+        return (EXIT_FAILURE);
+    }
+    
+    retorno = GravacaoEmDisco(disco, "Input/CRER.pdf");
+    if(retorno!=0){
+        return (EXIT_FAILURE);
+    }
+    
+    retorno = GravacaoEmDisco(disco, "/home/elivelton/Música/Suit & Tie (Dillon Francis Remix).mp3");
+    if(retorno!=0){
+        return (EXIT_FAILURE);
+    }
 
-    //GravacaoEmDisco(disco, "/home/elivelton/Dropbox/disney2017.pdf");
-//    GravacaoEmDisco(disco, "Input/TrabGA.ggb");
-//    
-//    RemocaoDoDisco(disco, "Input/quadricas.pdf");
-//    
-//    GravacaoEmDisco(disco, "Input/abada.jpg");
+    retorno = RemocaoDoDisco(disco, "Input/CRER.pdf");
+    if(retorno != 0){
+        return (EXIT_FAILURE);
+    }
+
+    GravacaoEmDisco(disco, "/home/elivelton/Dropbox/disney2017.pdf");
+    if(retorno != 0){
+        return (EXIT_FAILURE);
+    }
 
     printf("Quantidade de Arquivos: %d\n", disco->qtdeArquivos);
     printf("Quantidade Livre: %lu\n", disco->espacoLivre);
@@ -34,14 +49,19 @@ int main() {
     
     /*Incio Abertura e validação do arquivo*/
     FILE* recuperado;
-    recuperado = fopen("OutPut/CRER.pdf", "wb");
+    recuperado = fopen("OutPut/disney2017.pdf", "wb");
     if(!recuperado){
         perror("Erro na abertura do arquivo");
     }
     /*Fim Abertura e Validação arquivo*/
 
-    RecuperaArquivo(disco, "Input/CRER.pdf", recuperado);
+    retorno = RecuperaArquivo(disco, "/home/elivelton/Dropbox/disney2017.pdf", recuperado);
     fclose(recuperado);
+    
+    if(retorno != 0){
+        remove("OutPut/CRER.pdf");
+        return(EXIT_FAILURE);
+    }
 
     return (EXIT_SUCCESS);
 }

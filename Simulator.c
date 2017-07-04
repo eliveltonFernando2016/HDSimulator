@@ -50,88 +50,87 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
     int tamanho = ftell(arq);
     /*Fim Abertura e Validação arquivo*/
 
-    if(tamanho==0){
+    if(tamanho==0){                     //Verifica se o arquivo é válido.
         return ARQUIVO_INEXISTENTE;
+    }
+    else if(tamanho >= d->espacoLivre){ //Verifica se o disco tem espaço suficiente para armazena-lo.
+        return ESPACO_INSUFICIENTE;
     }
     else{
         rewind(arq);//Traz ponteiro para o começo do arquivo
-        int tamanhoAux = tamanho;
+        unsigned long tamanhoAux = tamanho;
 
-        if(tamanho <= d->espacoLivre){ //Verifica se o disco tem espaço suficiente para adicionar o arquivo
-            /*Inicio declaração de um nó arquivo*/
-            NoArquivo* noArquivo = (NoArquivo*)calloc(1, sizeof(NoArquivo));
-            strcpy(noArquivo->nome, arquivo);
-            noArquivo->tam = tamanho;
-            noArquivo->setores = (NoSetor*)calloc(1, sizeof(NoSetor));
-            noArquivo->setores->inicio = -1;
-            noArquivo->setores->fim = -1;
-            noArquivo->ant = noArquivo;
-            noArquivo->prox = noArquivo;
-            noArquivo->setores->ant = noArquivo->setores;
-            noArquivo->setores->prox = noArquivo->setores;
+        /*Inicio declaração de um nó arquivo*/
+        NoArquivo* noArquivo = (NoArquivo*)calloc(1, sizeof(NoArquivo));
+        strcpy(noArquivo->nome, arquivo);
+        noArquivo->tam = tamanho;
+        noArquivo->setores = (NoSetor*)calloc(1, sizeof(NoSetor));
+        noArquivo->setores->inicio = -1;
+        noArquivo->setores->fim = -1;
+        noArquivo->ant = noArquivo;
+        noArquivo->prox = noArquivo;
+        noArquivo->setores->ant = noArquivo->setores;
+        noArquivo->setores->prox = noArquivo->setores;
 
-            noArquivo->ant = d->arquivos->prox->ant;
-            d->arquivos->prox->ant = noArquivo;
-            noArquivo->prox = d->arquivos->prox;
-            d->arquivos->prox = noArquivo;
-            /*Fim declaração nó arquivo*/
+        noArquivo->ant = d->arquivos->prox->ant;
+        d->arquivos->prox->ant = noArquivo;
+        noArquivo->prox = d->arquivos->prox;
+        d->arquivos->prox = noArquivo;
+        /*Fim declaração nó arquivo*/
 
-            while (tamanhoAux > 0) {
-                if(((d->livres->prox->fim - d->livres->prox->inicio)+1) >= tamanhoAux){ //Eu adiciono o arquivo completo caso haja espaço
-                    size_t result = fread(d->disco+(d->livres->prox->inicio), 1, tamanho, arq);
-                    /*Adicionando um novo setor como ultimo nó*/
-                    NoSetor* novoNoSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
-                    novoNoSetorArquivo->inicio = d->livres->prox->inicio;
-                    novoNoSetorArquivo->fim = d->livres->prox->inicio+tamanhoAux;
+        while (tamanhoAux > 0) {
+            if(((d->livres->prox->fim - d->livres->prox->inicio)+1) >= tamanhoAux){ //Eu adiciono o arquivo completo caso haja espaço
+                fread(d->disco+(d->livres->prox->inicio), 1, tamanho, arq); //Adicionando bit a bit no meu disco
+                
+                /*Adicionando um novo setor como ultimo nó*/
+                NoSetor* novoNoSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
+                novoNoSetorArquivo->inicio = d->livres->prox->inicio;
+                novoNoSetorArquivo->fim = d->livres->prox->inicio+tamanho;
 
-                    noArquivo->setores->ant->prox = novoNoSetorArquivo;
-                    novoNoSetorArquivo->ant = noArquivo->setores->ant;
-                    novoNoSetorArquivo->prox = noArquivo->setores;
-                    noArquivo->setores->ant = novoNoSetorArquivo;
+                noArquivo->setores->ant->prox = novoNoSetorArquivo;
+                novoNoSetorArquivo->ant = noArquivo->setores->ant;
+                novoNoSetorArquivo->prox = noArquivo->setores;
+                noArquivo->setores->ant = novoNoSetorArquivo;
 
-                    /*Se o arquivo for do mesmo tamanho que o setor livre,
-                     eu reaponto o nó sentinela do primeiro para o segundo,
-                     se caso o arquivo é menor, eu apenas atualizo o valor
-                     de inicio do setor livre*/
-                    if((d->livres->prox->fim - d->livres->prox->inicio)+1 == tamanho){
-                        d->livres->prox->prox->ant = d->livres->prox->ant;
-                        NoSetor* aux = d->livres->prox;
-                        d->livres->prox = d->livres->prox->prox;
-                        free(aux);
-                    }
-                    else{
-                        d->livres->prox->inicio += tamanho;
-                    }
-
-                    tamanhoAux=0;
-                }
-                else{
-                    fread(d->disco+(d->livres->prox->inicio), 1, d->livres->prox->fim - d->livres->prox->inicio, arq);
-                    NoSetor* noSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
-                    noSetorArquivo->inicio = d->livres->prox->inicio;
-                    noSetorArquivo->fim = noSetorArquivo->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
-
-                    /*Adicionando um novo setor como ultimo nó*/
-                    NoSetor* novoNoSetor = (NoSetor*)calloc(1, sizeof(NoSetor));
-                    noArquivo->setores->ant->prox = novoNoSetor;
-                    novoNoSetor->ant = noArquivo->setores->ant;
-                    novoNoSetor->prox = noArquivo->setores;
-                    noArquivo->setores->ant = novoNoSetor;
-
-                    novoNoSetor->inicio = d->livres->prox->inicio;
-                    novoNoSetor->fim = d->livres->prox->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
-
+                /*Se o arquivo for do mesmo tamanho que o setor livre,
+                 eu reaponto o nó sentinela do primeiro para o segundo,
+                 se caso o arquivo é menor, eu apenas atualizo o valor
+                 de inicio do setor livre*/
+                if((d->livres->prox->fim - d->livres->prox->inicio)+1 == tamanho){
                     d->livres->prox->prox->ant = d->livres->prox->ant;
                     NoSetor* aux = d->livres->prox;
                     d->livres->prox = d->livres->prox->prox;
                     free(aux);
-
-                    tamanhoAux -= d->livres->prox->fim - d->livres->prox->inicio;
                 }
+                else{
+                    d->livres->prox->inicio += tamanho;
+                }
+
+                tamanhoAux=0;
             }
-        }
-        else{
-            return ESPACO_INSUFICIENTE;
+            else{
+                fread(d->disco+(d->livres->prox->inicio), 1, d->livres->prox->fim - d->livres->prox->inicio, arq);
+                NoSetor* noSetorArquivo = (NoSetor*)calloc(1, sizeof(NoSetor));
+                noSetorArquivo->inicio = d->livres->prox->inicio;
+                noSetorArquivo->fim = noSetorArquivo->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
+
+                /*Adicionando um novo setor como ultimo nó*/
+                NoSetor* novoNoSetor = (NoSetor*)calloc(1, sizeof(NoSetor));
+                noArquivo->setores->ant->prox = novoNoSetor;
+                novoNoSetor->ant = noArquivo->setores->ant;
+                novoNoSetor->prox = noArquivo->setores;
+                noArquivo->setores->ant = novoNoSetor;
+
+                novoNoSetor->inicio = d->livres->prox->inicio;
+                novoNoSetor->fim = d->livres->prox->inicio+(d->livres->prox->fim - d->livres->prox->inicio);
+
+                d->livres->prox->prox->ant = d->livres->prox->ant;
+                NoSetor* aux = d->livres->prox;
+                d->livres->prox = d->livres->prox->prox;
+                free(aux);
+
+                tamanhoAux -= d->livres->prox->fim - d->livres->prox->inicio;
+            }
         }
     }
     d->espacoLivre -= tamanho;
@@ -144,19 +143,21 @@ TipoRetorno GravacaoEmDisco(Disco* d, char* arquivo){
 TipoRetorno RemocaoDoDisco(Disco* d, char* nome){
     NoArquivo* noArqAux = d->arquivos->prox;
 
-    while (noArqAux != d->arquivos && strcmp(nome, noArqAux->nome)!=0){                     //Laço para chegar até o nó do arquivo
+    while (noArqAux != d->arquivos && strcmp(nome, noArqAux->nome)!=0){ //Laço para chegar até o nó do arquivo
         noArqAux = noArqAux->prox;
     }
 
-    NoSetor* noSetorDeleta = noArqAux->setores;
+    if(strcmp(nome, noArqAux->nome)!=0){
+        return ARQUIVO_INEXISTENTE;
+    }
 
     //Atualiza os valores de espaço livre e ocupado
-    d->espacoLivre += ((noArqAux->setores->prox->fim - noArqAux->setores->prox->inicio)+1);
-    d->espacoOcupado -= ((noArqAux->setores->prox->fim - noArqAux->setores->prox->inicio)+1);
+    d->espacoLivre += ((noArqAux->setores->fim - noArqAux->setores->inicio)+1);
+    d->espacoOcupado -= ((noArqAux->setores->fim - noArqAux->setores->inicio)+1);
 
     //Reaponta do primeiro setor para o segundo
-    noArqAux->setores->prox->prox->ant = noArqAux->setores->prox->ant;
-    noArqAux->setores->prox = noArqAux->setores->prox->prox;
+    noArqAux->setores->prox->ant = noArqAux->setores->ant;
+    noArqAux->setores = noArqAux->setores->prox;
 
     /*
      * Possibilidades:
@@ -164,31 +165,15 @@ TipoRetorno RemocaoDoDisco(Disco* d, char* nome){
      * Ao lado esquerdo do primeiro: atualiza o inicio pra mais,
      * Não fica ao lado de nenhum antigo setor livre. Criando um novo nó de espaço livre,
      */
-    NoSetor* setorLivreAux = d->livres;
-    while (setorLivreAux->inicio < noArqAux->setores->prox->inicio) {
-        if(noArqAux->setores->prox->fim+1 == setorLivreAux->inicio){
-            setorLivreAux->inicio = noArqAux->setores->prox->inicio;
-            free(noSetorDeleta);
-        }
-        else if(noArqAux->setores->prox->inicio-1 == setorLivreAux->fim){
-            setorLivreAux->fim = noArqAux->setores->prox->fim;
-            free(noSetorDeleta);
-        }
-        else if(noArqAux->setores->prox->fim+1 < setorLivreAux->inicio){
-            noArqAux->setores->prox->ant = setorLivreAux->ant;
-            setorLivreAux->ant->prox = noArqAux->setores->prox;
-            setorLivreAux->ant = noArqAux->setores->prox;
-            noArqAux->setores->prox->prox = setorLivreAux;
-        }
-
-        setorLivreAux = setorLivreAux->prox;
-    }
+    devolve_livre(d->livres, noArqAux->setores->prox);
 
     //Reaponta os nós arquivos e remove nó
     noArqAux->prox->ant = noArqAux->ant;
     noArqAux->ant->prox = noArqAux->prox;
 
     d->qtdeArquivos--;
+    NoArquivo* noDeleta = noArqAux;
+    free(noDeleta);
     return SUCESSO;
 }
 
@@ -198,6 +183,10 @@ TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico){
 
     while (noArqAux != d->arquivos && strcmp(nome, noArqAux->nome) != 0){    //Laço para chegar até o nó do arquivo
         noArqAux = noArqAux->prox;
+    }
+    
+    if(strcmp(nome, noArqAux->nome)!=0){
+        return ARQUIVO_INEXISTENTE;
     }
 
     NoSetor* noSetorAux = noArqAux->setores->prox;
@@ -210,4 +199,38 @@ TipoRetorno RecuperaArquivo(Disco* d, char* nome, FILE* arquivoFisico){
     }
     
     return SUCESSO;
+}
+
+void devolve_livre(NoSetor* sentinela, NoSetor* disponivel){
+    if (disponivel == NULL){
+        return;
+    }
+
+    NoSetor* aux = sentinela->prox;
+    //posiciona o aux
+    while(aux != sentinela && disponivel->inicio > aux->inicio){
+        aux = aux->prox;
+    }
+    no_insereAntes(aux, disponivel);
+    no_verifica(disponivel);
+}
+
+void no_insereAntes(NoSetor* referencia, NoSetor* novo){
+    novo->ant = referencia->ant;
+    novo->prox = referencia;
+    referencia->ant->prox = novo;
+    referencia->ant = novo;
+}
+
+void no_verifica(NoSetor* no){
+    //Verifica se ha a necessidade de mesclar com o no anterior
+    if(no->inicio == no->ant->fim + 1){
+        no->inicio = no->ant->inicio;
+        //no_destroi(no->ant);
+    }
+    //Verifica se ha a necessidade de mesclar com o no posterior
+    if(no->fim == no->prox->inicio+1){
+        no->fim = no->prox->fim;
+        //no_destroi(no->prox);
+    }
 }
